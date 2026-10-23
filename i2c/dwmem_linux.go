@@ -98,7 +98,13 @@ type dwI2C struct {
 
 // dwControllers lists the AMDI0010 controllers from /proc/iomem as name -> physical base,
 // without the ones a kernel driver has bound (those show up as /dev/i2c-N).
+// Only on the DXP4800 GT: the power register layout is verified on no other board.
 func dwControllers() (names []string, bases []int64) {
+	product, _ := os.ReadFile("/sys/class/dmi/id/product_name")
+	if !strings.HasPrefix(string(product), "DXP4800") || !strings.Contains(string(product), "GT") {
+		return nil, nil
+	}
+
 	content, _ := os.ReadFile("/proc/iomem")
 	for _, line := range strings.Split(string(content), "\n") {
 		span, name, ok := strings.Cut(line, " : ")
